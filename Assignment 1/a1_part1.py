@@ -50,36 +50,36 @@ def mseCalc(matrix, weight, output):
 20 degree polynomial
 '''
 
-N = 21;
+N = 21
 
-#training set
-train_matrix = trainingSet_1;
+# training set
+train_matrix = trainingSet_1
 train_matrix.columns = [1]
 for i in range(N):
     train_matrix[i] = pow(train_matrix[1], numpy.float64(i))
 
-train_matrix = train_matrix.sort_index(axis=1 ,ascending=True)
+train_matrix = train_matrix.sort_index(axis=1, ascending=True)
 
-#validation set
-valid_matrix = validSet_1;
+# validation set
+valid_matrix = validSet_1
 valid_matrix.columns = [1]
 for i in range(N):
     valid_matrix[i] = pow(valid_matrix[1], numpy.float64(i))
 
-valid_matrix = valid_matrix.sort_index(axis=1 ,ascending=True)
+valid_matrix = valid_matrix.sort_index(axis=1, ascending=True)
 
 
-#test set
-test_matrix = testSet_1;
+# test set
+test_matrix = testSet_1
 test_matrix.columns = [1]
 for i in range(N):
     test_matrix[i] = pow(test_matrix[1], numpy.float64(i))
 
-test_matrix = test_matrix.sort_index(axis=1 ,ascending=True)
+test_matrix = test_matrix.sort_index(axis=1, ascending=True)
 
 
 
-#weight function w* = (X^T X)^-1 X^T y
+# weight function w* = (X^T X)^-1 X^T y
 
 weight = weightCalc(train_matrix, train1_y)
 
@@ -89,7 +89,7 @@ MSE = 1/N * sum((xw - y)^2)
 '''
 
 
-#TRAINING SET
+# TRAINING SET
 predict_train = numpy.matmul(train_matrix, weight)
 
 train_error = numpy.power(numpy.subtract(predict_train, train1_y), 2)
@@ -98,7 +98,7 @@ train_mse = train_error.mean()
 
 print("\nTraining set MSE: ", train_mse)
 
-#VALIDATION SET
+# VALIDATION SET
 predict_valid = numpy.matmul(valid_matrix, weight)
 
 valid_error = numpy.power(numpy.subtract(predict_valid, valid1_y), 2)
@@ -106,7 +106,7 @@ valid_mse = valid_error.mean()
 
 print("\nValidation set MSE: ", valid_mse)
 
-#Test SET
+# est SET
 predict_test = numpy.matmul(test_matrix, weight)
 
 test_error = numpy.power(numpy.subtract(predict_test, test1_y), 2)
@@ -114,7 +114,7 @@ test_mse = test_error.mean()
 
 print("\nTest set MSE: ", test_mse)
 
-#2) add L2 regularization
+# 2) add L2 regularization
 
 train_mse_reg = []
 valid_mse_reg = []
@@ -127,35 +127,50 @@ lambdas = [0.001 * i for i in range(1000)]
 for i in lambdas:
     weight_reg = weightCalc_reg(train_matrix, i, train1_y)
 
-    #TRAINING SET
-    predict_train = numpy.matmul(train_matrix, weight_reg)
+    # TRAINING SET
+    predict_train_reg = numpy.matmul(train_matrix, weight_reg)
 
-    train_error = numpy.power(numpy.subtract(predict_train, train1_y), 2)
-    train_mse = train_error.mean()
+    train_error_reg = numpy.power(numpy.subtract(predict_train_reg, train1_y), 2)
+    train_mse_2 = train_error_reg.mean()
 
-    train_mse_reg.append(train_mse)
+    train_mse_reg.append(train_mse_2)
 
-    #VALIDATION SET
-    predict_valid = numpy.matmul(valid_matrix, weight_reg)
+    # VALIDATION SET
+    predict_valid_red = numpy.matmul(valid_matrix, weight_reg)
 
-    valid_error = numpy.power(numpy.subtract(predict_valid, valid1_y), 2)
-    valid_mse = valid_error.mean()
+    valid_error_reg = numpy.power(numpy.subtract(predict_valid_red, valid1_y), 2)
+    valid_mse_2 = valid_error_reg.mean()
 
-    if(valid_mse < min_valError):
-        min_valError = valid_mse
+    if valid_mse_2 < min_valError:
+        min_valError = valid_mse_2
         lambda_minError = i
 
-    valid_mse_reg.append(valid_mse)
+    valid_mse_reg.append(valid_mse_2)
 
-    #TEST SET
-    predict_test = numpy.matmul(test_matrix, weight_reg)
+    # TEST SET
+    predict_test_reg = numpy.matmul(test_matrix, weight_reg)
 
-    test_error = numpy.power(numpy.subtract(predict_test, test1_y), 2)
-    test_mse = test_error.mean()
+    test_error_reg = numpy.power(numpy.subtract(predict_test_reg, test1_y), 2)
+    test_mse_2 = test_error_reg.mean()
 
-    test_mse_reg.append(test_mse)
+    test_mse_reg.append(test_mse_2)
 
-#visualize part 1
+index = numpy.argmin(valid_mse_reg)
+best_lambda = lambdas[index]
+print("best lambda: " + str(best_lambda))
+print("smallest train MSE: " + str(train_mse_reg[index]))
+print("smallest valid MSE: " + str(valid_mse_reg[index]))
+print("smallest test MSE: " + str(test_mse_reg[index]))
+
+weight_reg = weightCalc_reg(train_matrix, i, train1_y)
+
+# TRAINING SET
+best_predict_train = numpy.matmul(train_matrix, weight_reg)
+
+# VALIDATION SET
+best_predict_valid = numpy.matmul(valid_matrix, weight_reg)
+
+# visualize part 1
 plt.figure(1)
 plt.subplot(3, 1, 1)
 plt.scatter(train1_x, predict_train)
@@ -171,7 +186,7 @@ plt.scatter(test1_x, predict_test)
 plt.plot(train1_x, train1_y, 'r--')
 
 
-#visualize part 2
+# visualize part 2
 plt.figure(2)
 plt.plot(lambdas[1:], train_mse_reg[1:], 'b-', label="train")
 plt.plot(lambdas[1:], valid_mse_reg[1:], 'r--', label="validation")
@@ -183,5 +198,17 @@ plt.scatter([lambda_minError], [valid_mse_reg[int(lambda_minError*1000)]], color
 plt.legend(bbox_to_anchor=(1, 1),
            bbox_transform=plt.gcf().transFigure, borderaxespad=0.)
 
+plt.figure(4)
+plt.title('Training set prediction')
+plt.scatter(train1_x, best_predict_train, color='b')
+plt.plot(train1_x, train1_y, 'r--')
+
+plt.figure(5)
+plt.title('Validation set prediction')
+plt.scatter(valid1_x, best_predict_valid, color='b')
+plt.plot(valid1_x, valid1_y, 'r--')
+
+
 plt.show()
+
 
