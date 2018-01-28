@@ -84,57 +84,57 @@ plt.plot(epoch[1:], mse_valid[1:], 'r--')
 plt.show()
 
 # # 2) finding best step
-# steps = [50 * i * 1e-6 for i in range(1, 50)]
-# valid_mse_step = linRegStep(train2_x, train2_y, valid2_x, valid2_y, steps)
-#
-# print(valid_mse_step)
-#
-# plt.plot(steps, valid_mse_step, 'r--')
-# plt.show()
-#
-# index = numpy.argmin(valid_mse_step)
-#
-# print(index)
-# print(valid_mse_step[index])
-# print(steps[index])
-#
-# step = steps[index]
-# mse_train, mse_test, w0, w1 = linReg(train2_x, train2_y, valid2_x, valid2_y, step)
-# epoch = [i for i in range(len(mse_test))]
-#
-# plt.figure(1)
-# plt.plot(epoch[1:], mse_test[1:], 'r--')
-#
-# plt.show()
+steps = [50 * i * 1e-6 for i in range(1, 50)]
+valid_mse_step = linRegStep(train2_x, train2_y, valid2_x, valid2_y, steps)
+
+print(valid_mse_step)
+
+plt.plot(steps, valid_mse_step, 'r--')
+plt.show()
+
+index = numpy.argmin(valid_mse_step)
+
+print(index)
+print(valid_mse_step[index])
+print(steps[index])
+
+step = steps[index]
+mse_train, mse_test, w0, w1 = linReg(train2_x, train2_y, valid2_x, valid2_y, step)
+epoch = [i for i in range(len(mse_test))]
+
+plt.figure(1)
+plt.plot(epoch[1:], mse_test[1:], 'r--')
+
+plt.show()
 
 
 
 # 3) print out the training curve
-# w0 = float(random.random() * 10)
-# w1 = float(random.random() * 10)
-#
-# params = []
-#
-# while True:
-#     w0_prev = w0
-#     w1_prev = w1
-#     for i in range(len(train2_x)):
-#         pred = w0 + train2_x[i] * w1
-#         w0 = w0 - step * (pred - train2_y[i])
-#         w1 = w1 - step * (pred - train2_y[i]) * train2_x[i]
-#
-#     params.append([w0, w1])
-#
-#     if (abs(w0 - w0_prev) < error) and (abs(w1 - w1_prev) < error):
-#         break
-#
-# for i in range(len(params)):
-#     # index = int(i * len(params) / 5)
-#     index = i
-#     weight = params[index]
-#     pred = weight[1] * test2_x + weight[0]
-#     plt.figure(i + 1)
-#     plt.scatter(test2_x, test2_y)
-#     plt.plot(test2_x, pred, 'r-')
-#
-# plt.show()
+w0 = float(random.random() * 10)
+w1 = float(random.random() * 10)
+
+params = []
+
+while True:
+    w0_prev = w0
+    w1_prev = w1
+    for i in range(len(train2_x)):
+        pred = w0 + train2_x[i] * w1
+        w0 = w0 - step * (pred - train2_y[i])
+        w1 = w1 - step * (pred - train2_y[i]) * train2_x[i]
+
+    params.append([w0, w1])
+
+    if (abs(w0 - w0_prev) < error) and (abs(w1 - w1_prev) < error):
+        break
+
+for i in range(len(params)):
+    # index = int(i * len(params) / 5)
+    index = i
+    weight = params[index]
+    pred = weight[1] * test2_x + weight[0]
+    plt.figure(i + 1)
+    plt.scatter(test2_x, test2_y)
+    plt.plot(test2_x, pred, 'r-')
+
+plt.show()
