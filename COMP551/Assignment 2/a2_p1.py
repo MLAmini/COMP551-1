@@ -58,80 +58,88 @@ len1 = len(train1)
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 # estimated max probability
-# prob_0 = float(len0) / float(len0 + len1)
-# prob_1 = 1.0 - prob_0
-#
-#
-# # drop the ouput column
-# train0 = train[train[20] == 1]
-# train0 = train0[train0.columns.difference([20])]
-#
-# train1 = train[train[20] == 1]
-# train1 = train1[train1.columns.difference([20])]
-#
-# train01 = train0[1]
-#
-# mean_0 = numpy.array((train0.mean())/len0)
-# mean_1 = numpy.array((train1.mean())/len1)
-#
-# diff_0 = numpy.array(train0 - mean_0)
-# diff_1 = numpy.array(train1 - mean_1)
-#
-# coeff_0 = numpy.sum(row.dot(row.T) for row in diff_0)
-# coeff_1 = numpy.sum(row.dot(row.T) for row in diff_1)
-#
-# coeff = (coeff_0 + coeff_1) / float(len0 + len1)
-#
-# w0 = math.log(prob_0) - math.log(prob_1) - 1/2 / coeff * (mean_0.dot(mean_0) - mean_1.dot(mean_1))
-# w1 = coeff * (mean_0 - mean_1)
-#
-#
-# print("w0: " + str(w0))
-# print("w1: " + str([i for i in w1]) + "\n")
-#
-# test_output = numpy.array(test[20])
-# test.drop([20], inplace=True, axis=1)
-#
-# pred = numpy.matmul(test, w1) + w0
-#
-# # replace dec_bound to 0 and 1
-# pred[pred < 0] = 0.0
-# pred[pred > 0] = 1.0
-#
-# error_matrix = pred - test_output
-#
-# elem, cnt = numpy.unique(error_matrix, return_counts=True)
-#
-# print(numpy.asarray([elem, cnt]))
-#
-# '''
-# 1 => false positive
-# 0 => correct prediction
-# -1 => false negative
-# '''
-#
-# fp = cnt[2]
-# fn = cnt[0]
-#
-#
-# tp = numpy.sum(pred.dot(test_output))
-# print("True positive: " + str(tp))
-#
-# pred = pred - 1
-# test_output = test_output - 1
-# tn = numpy.sum(pred.dot(test_output))
-# print("True negative: " + str(tn))
-#
-# precision = tp / (tp + fp)
-# recall = tp / (tp + fn)
-# accuracy = (tn + tp) / (tn + tp + fn + fp)
-#
-# F = 2 * precision * recall / (precision + recall)
-#
-# print("\nF measure: " + str(F))
-# print("Accuracy: " + str(accuracy))
-# print("Precision: " + str(precision))
-# print("Recall: " + str(recall))
+prob_0 = float(len0) / float(len0 + len1)
+prob_1 = 1.0 - prob_0
+
+
+# drop the ouput column
+train0 = train[train[20] == 0]
+train0 = train0[train0.columns.difference([20])]
+
+train1 = train[train[20] == 1]
+train1 = train1[train1.columns.difference([20])]
+
+mean_0 = numpy.array(train0.mean())
+mean_1 = numpy.array(train1.mean())
+
+diff_0 = numpy.array(train0 - mean_0)
+diff_1 = numpy.array(train1 - mean_1)
+
+# coeff_0 = numpy.sum([numpy.matmul(row, row.T) for row in diff_0])
+# coeff_1 = numpy.sum([numpy.matmul(row, row.T) for row in diff_1])
+
+coeff_0 = numpy.matmul(diff_0.T, diff_0)
+coeff_1 = numpy.matmul(diff_1.T, diff_1)
+
+coeff = (coeff_0 + coeff_1) / float(len0 + len1)
+
+# w0 = math.log(prob_0) - math.log(prob_1) - 1 / 2 / coeff * (numpy.matmul(mean_0.T, mean_0) - numpy.matmul(mean_1.T, mean_1))
+covm_0 = numpy.matmul(numpy.linalg.pinv(coeff), mean_0)
+mcovm_0 = numpy.matmul(mean_0.T, covm_0)
+
+covm_1 = numpy.matmul(numpy.linalg.pinv(coeff), mean_1)
+mcovm_1 = numpy.matmul(mean_1.T, covm_1)
+
+w0 = math.log(prob_0) - math.log(prob_1) - 1 / 2 * (mcovm_0 - mcovm_1)
+w1 = numpy.matmul(numpy.linalg.pinv(coeff), mean_0 - mean_1)
+
+
+print("w0: ", w0)
+print("w1: " + str([i for i in w1]) + "\n")
+
+test_output = numpy.array(test[20])
+test.drop([20], inplace=True, axis=1)
+
+pred = numpy.matmul(test, w1) + w0
+
+# replace dec_bound to 0 and 1
+pred[pred > 0] = 0.0
+pred[pred < 0] = 1.0
+
+error_matrix = pred - test_output
+
+elem, cnt = numpy.unique(error_matrix, return_counts=True)
+
+print(numpy.asarray([elem, cnt]))
+
+'''
+1 => false positive
+0 => correct prediction
+-1 => false negative
+'''
+
+fp = cnt[2]
+fn = cnt[0]
+
+
+tp = numpy.sum(pred.dot(test_output))
+print("True positive: " + str(tp))
+
+pred = pred - 1
+test_output = test_output - 1
+tn = numpy.sum(pred.dot(test_output))
+print("True negative: " + str(tn))
+
+precision = tp / (tp + fp)
+recall = tp / (tp + fn)
+accuracy = (tn + tp) / (tn + tp + fn + fp)
+
+F = 2 * precision * recall / (precision + recall)
+
+print("\nF measure: " + str(F))
+print("Accuracy: " + str(accuracy))
+print("Precision: " + str(precision))
+print("Recall: " + str(recall))
 
 
 
