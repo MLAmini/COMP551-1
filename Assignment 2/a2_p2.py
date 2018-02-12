@@ -42,7 +42,7 @@ ds0 = []
 for i in range(len(weight)):
     for j in range(int(2000 * weight[i])):
         ds1.append(numpy.random.multivariate_normal(c1_m[i], cov[i]))
-        ds0.append(numpy.random.multivariate_normal(c1_m[i], cov[i]))
+        ds0.append(numpy.random.multivariate_normal(c2_m[i], cov[i]))
 
 
 ds1 = pandas.DataFrame(ds1)
