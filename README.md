@@ -23,4 +23,9 @@ pip install -r requirement.txt
 
 ### Assignment 2 
 - Linear discriminant analysis (LDA) 
-- K-NN   
+- K-NN
+
+### Assignment 3
+- Sentimental Analysis with IMBD and Yelp datasets 
+- Bag-of-Words analysis using Linear SVM, Naive Bayes and Decision Trees 
+- used SciKit-Learn package    
