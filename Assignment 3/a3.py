@@ -81,28 +81,28 @@ def train_models(name, set, freq):
 	average = None if (classes > 2) else 'binary'
 
 
-	# # Random Uniform Classifier
-	# pred = np.rint(np.random.random(len(train_truth)) * (classes - 1))
-	# print("{} Random Uniform Classifier train f1_score {}".format(name, f1_score(train_truth, pred, average = average)))
+	# Random Uniform Classifier
+	pred = np.rint(np.random.random(len(train_truth)) * (classes - 1))
+	print("{} Random Uniform Classifier train f1_score {}".format(name, f1_score(train_truth, pred, average = average)))
 
-	# pred = np.rint(np.random.random(len(valid_truth)) * (classes - 1))
-	# print("{} Random Uniform Classifier valid f1_score {}".format(name, f1_score(valid_truth, pred, average = average)))
+	pred = np.rint(np.random.random(len(valid_truth)) * (classes - 1))
+	print("{} Random Uniform Classifier valid f1_score {}".format(name, f1_score(valid_truth, pred, average = average)))
 
-	# pred = np.rint(np.random.random(len(test_truth)) * (classes - 1))
-	# print("{} Random Uniform Classifier test f1_score {}\n".format(name, f1_score(test_truth, pred, average = average)))
+	pred = np.rint(np.random.random(len(test_truth)) * (classes - 1))
+	print("{} Random Uniform Classifier test f1_score {}\n".format(name, f1_score(test_truth, pred, average = average)))
 
 
-	# # Majority Class Classifier
-	# maj = np.argmax(np.bincount(train_truth))
+	# Majority Class Classifier
+	maj = np.argmax(np.bincount(train_truth))
 
-	# pred = np.array([maj for i in range(len(train_truth))])
-	# print("{} Majority Class Classifier trian f1_score {}".format(name, f1_score(train_truth, pred, average = average)))
+	pred = np.array([maj for i in range(len(train_truth))])
+	print("{} Majority Class Classifier trian f1_score {}".format(name, f1_score(train_truth, pred, average = average)))
 
-	# pred = np.array([maj for i in range(len(valid_truth))])
-	# print("{} Majority Class Classifier valid f1_score {}".format(name, f1_score(valid_truth, pred, average = average)))
+	pred = np.array([maj for i in range(len(valid_truth))])
+	print("{} Majority Class Classifier valid f1_score {}".format(name, f1_score(valid_truth, pred, average = average)))
 
-	# pred = np.array([maj for i in range(len(test_truth))])
-	# print("{} Majority Class Classifier test f1_score {}\n".format(name, f1_score(test_truth, pred, average = average)))
+	pred = np.array([maj for i in range(len(test_truth))])
+	print("{} Majority Class Classifier test f1_score {}\n".format(name, f1_score(test_truth, pred, average = average)))
 
 
 	# Naive Bayes
