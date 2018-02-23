@@ -88,11 +88,11 @@ def feature_extraction(name, n):
 
 	return dict
 
-def get_bow(dict, name):
+def get_bow(dict, set):
 	""""
 	Keyword arguments: 
 	dict -- top features vocabulary (dict)
-	name -- name of the set (string) -- IMDB or yelp
+	set -- name of the set (string) -- IMDB or yelp
 
 	Returns: 
 	[binary bow vectors, truth], [frequency bow vectors, truth]
@@ -104,7 +104,7 @@ def get_bow(dict, name):
 	bow_f = {}
 	for type in types: 
 		name = type.split('.')[0]
-		text  = preprocess(ds_path + name + type).split('\n')
+		text  = preprocess(ds_path + set + type).split('\n')
 
 		text = list(filter(None, text))
 
