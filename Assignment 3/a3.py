@@ -17,148 +17,50 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-ds_path = './hwk3_datasets/'
 types = ['train.txt', 'valid.txt', 'test.txt', ]
-
-def confusion_matrix(pred, truth):
-	# m = [[tn, fp], [fn, tp]]
-	m = [[0, 0], [0, 0]]
-	tp = np.dot(pred, truth)
-	diff = pred - truth
-	m[0][0] = np.count_nonzero(diff == 0) - tp
-	m[0][1] = np.count_nonzero(diff == 1)
-	m[1][0] = np.count_nonzero(diff == -1)
-	m[1][1] = tp
-
-	return m
-
-def train_models(name, set, freq):
-	n_folds = 5
-
-	train = set['train']
-	valid = set['valid']
-	test = set['test']
-
-	train_input = sparse.csr_matrix(train[0])
-	valid_input = sparse.csr_matrix(valid[0])
-	test_input = sparse.csr_matrix(test[0])
-
-	train_truth = np.array(train[1])
-	valid_truth = np.array(valid[1])
-	test_truth = np.array(test[1])
-
-	classes = len(np.unique(train_truth))
-	average = 'micro'
-
-
-	# Random Uniform Classifier
-	pred = np.rint(np.random.random(len(train_truth)) * (classes - 1))
-	print("{} Random Uniform Classifier train f1_score {}".format(name, f1_score(train_truth, pred, average = average)))
-
-	pred = np.rint(np.random.random(len(valid_truth)) * (classes - 1))
-	print("{} Random Uniform Classifier valid f1_score {}".format(name, f1_score(valid_truth, pred, average = average)))
-
-	pred = np.rint(np.random.random(len(test_truth)) * (classes - 1))
-	print("{} Random Uniform Classifier test f1_score {}\n".format(name, f1_score(test_truth, pred, average = average)))
-
-
-	# Majority Class Classifier
-	maj = np.argmax(np.bincount(train_truth))
-
-	pred = np.array([maj for i in range(len(train_truth))])
-	print("{} Majority Class Classifier trian f1_score {}".format(name, f1_score(train_truth, pred, average = average)))
-
-	pred = np.array([maj for i in range(len(valid_truth))])
-	print("{} Majority Class Classifier valid f1_score {}".format(name, f1_score(valid_truth, pred, average = average)))
-
-	pred = np.array([maj for i in range(len(test_truth))])
-	print("{} Majority Class Classifier test f1_score {}\n".format(name, f1_score(test_truth, pred, average = average)))
-
-
-	# Naive Bayes
-	alpha = np.arange(0.6, 0.8, 0.01)
-	tuned_parameters = [{'alpha': alpha}]
-
-	if float:
-		clf =MultinomialNB() if classes > 2 else BernoulliNB()
-		clf = GridSearchCV(clf, tuned_parameters, cv=n_folds, refit=True)
-		clf.fit(train_input, train_truth)
-	
-	else :
-		clf = GaussianNB()
-	
-	clf.fit(train_input, train_truth)
-
-	pred = clf.predict(train_input)
-	print("{} Naive Bayes Classifier train f1_score {}".format(name, f1_score(train_truth, pred, average = average)))
-
-	pred = clf.predict(valid_input)
-	print("{} Naive Bayes Classifier valid f1_score {}".format(name, f1_score(valid_truth, pred, average = average)))
-
-	pred = clf.predict(test_input)
-	print("{} Naive Bayes Classifier test f1_score {}".format(name, f1_score(test_truth, pred, average = average)))
-	print(clf.best_params_, "\n")
-
-
-
-
-	# Decision Tree
-	tuned_parameters = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
-
-	clf = DecisionTreeClassifier()
-	clf = GridSearchCV(clf, tuned_parameters, cv=n_folds, refit=True)
-	clf.fit(train_input, train_truth)
-
-	pred = clf.predict(train_input)
-	print("{} Decision Tree Classifier train f1_score {}".format(name, f1_score(train_truth, pred, average = average)))
-
-	pred = clf.predict(valid_input)
-	print("{} Decision Tree Classifier valid f1_score {}".format(name, f1_score(valid_truth, pred, average = average)))
-
-	pred = clf.predict(test_input)
-	print("{} Decision Tree Classifier test f1_score {}".format(name, f1_score(test_truth, pred, average = average)))
-	print(clf.best_params_, "\n")
-
-
-
-
-	#Linear SVM 
-	tuned_parameters = [{'max_iter': [500 * i for i in range(5)], }]
-	
-	clf = LinearSVC()
-	clf = GridSearchCV(clf, tuned_parameters, cv=n_folds, refit=True)
-	clf.fit(train_input, train_truth)
-
-	pred = clf.predict(train_input)
-	print("{} Linear SVM Classifier train f1_score {}".format(name, f1_score(train_truth, pred, average = average)))
-
-	pred = clf.predict(valid_input)
-	print("{} Linear SVM Classifier valid f1_score {}".format(name, f1_score(valid_truth, pred, average = average)))
-
-	pred = clf.predict(test_input)
-	print("{} Linear SVM Classifier test f1_score {} ".format(name, f1_score(test_truth, pred, average = average)))
-	print(clf.best_params_, "\n")
+average = 'micro'
 
 
 def preprocess(file):
+	"""
+	Keyword arguments: 
+	file -- string file path (string)
+
+	Returns:
+	processed file (string)
+
+	the function reads the file, puts everything in lower case and removes punctuation marks 
+	"""
 	translator = str.maketrans(" ", " ", string.punctuation)
 	with open(file, 'r', encoding="utf-8") as f:
 		text = f.read()
 	text = text.lower().replace('\t', ' ').replace('<br /><br />', ' ').translate(translator)
 	return text
 
+def feature_extraction(name, n):
+	"""
+	Keyword arguments: 
+	name -- set name (IMBD or yelp) - string
+	n -- number of features - int
 
+	Returns: 
+	dictionary {"words": ID}
 
-''' DATA PARSING '''
-def feature_extraction(set, n):
-	file = preprocess(ds_path + set + types[0])
+	the function
+	- extracts the top n frequent features with their respective ID. 
+	- writes output file for feature ID and count 
+	- writes output files for feature vectors for train, valid, test set 
+	"""
+	file = preprocess(ds_path + name + types[0])
 	word_list = file.split(" ")
-	counter = Counter(word_list).most_common(n)
+	counter = Counter(word_list).most_common(n) #count the occurence of each word in the text
 	dict = {}
 
-	writer = open(set.split('-')[0] + '-vocab.txt', 'w')
 
-	# save top words
+	# save the top features in a output file "name-vocab.txt" 
+	# "word" id  count
+	writer = open(name.split('-')[0] + '-vocab.txt', 'w')
+
 	for i in range(n):
 		word = counter[i][0]
 		dict[word] = i + 1
@@ -166,14 +68,15 @@ def feature_extraction(set, n):
 		text = ("{}\t{}\t{}\n".format(word, i + 1, counter[i][1]))
 		writer.write(text)
 
+	# write feature vectors for every sample in train, valid and test sets 
 	for type in types:
-		print(ds_path + set + type)
-		file = preprocess(ds_path + set + type)
+		print(ds_path + name + type)
+		file = preprocess(ds_path + name + type)
 
 		examples = file.split("\n")[:-1]
 		ds_output = [i[-1] for i in examples]
 
-		writer = open(set.split('-')[0] + '-' + type.split('.')[0] + '.txt', 'w')
+		writer = open(name.split('-')[0] + '-' + type.split('.')[0] + '.txt', 'w')
 		for i in range(len(examples)):
 		    text = ""
 		    for word in examples[i].split(' ')[:-1]:
@@ -185,57 +88,248 @@ def feature_extraction(set, n):
 
 	return dict
 
-def get_bow(dict, set):
+def get_bow(dict, name):
+	""""
+	Keyword arguments: 
+	dict -- top features vocabulary (dict)
+	name -- name of the set (string) -- IMDB or yelp
+
+	Returns: 
+	[binary bow vectors, truth], [frequency bow vectors, truth]
+
+	the function: 
+	- uses CountVectorizer and the feature vocabulary to construct bag of word vectors
+	"""
 	bow = {}
 	bow_f = {}
 	for type in types: 
 		name = type.split('.')[0]
-		text  = preprocess(ds_path + set + type).split('\n')
+		text  = preprocess(ds_path + name + type).split('\n')
 
 		text = list(filter(None, text))
 
-		output = [int(line[-1]) for line in text]
+		output = np.array([int(line[-1]) for line in text])
 		examples = [line[:-1] for line in text]
 
 		vectorizer = CountVectorizer(vocabulary = dict.keys())
 
 		vectors = np.asarray(vectorizer.fit_transform(examples).todense())
 
-		freq = normalize(vectors)
-		vectors[vectors > 1] = 1
-		binary = vectors
+		#save freq and binary as sparse vectors for faster training
+		freq = sparse.csr_matrix(normalize(vectors))
+		vectors[vectors > 1] = 1 #set all count > 1 to 1, to binarize the vector
+		binary = sparse.csr_matrix(vectors)
 
 		bow[name] = [binary, output]
 		bow_f[name] = [freq, output]
 
 	return bow, bow_f
 
+def train_model(set, clf, params, n_folds):
+	""""
+	Keyword arguments: 
+	set -- dataset (dictionary)
+	clf -- sklearn model 
+	params -- fine-tuning parameter 
+	n_folds -- number of cross validation folds
+
+	Returns: 
+	f1_score train, f1_score valid, f1_score test, best parameter 
+
+	the function: 
+	- uses GridSearchCV to find the best hyperparameter for the model
+	- refits the model with the parameters 
+	- predicts train, valid and test sets 
+	- find respective f1_scores
+	"""
+	train = set['train']
+	valid = set['valid']
+	test = set['test']
+
+	train_input = train[0]
+	valid_input = valid[0]
+	test_input = test[0]
+
+	train_truth = train[1]
+	valid_truth = valid[1]
+	test_truth = test[1]
+
+	if params != None:
+		clf = GridSearchCV(clf, params, cv=n_folds, refit=True)
+	clf.fit(train_input, train_truth)
+
+	best_param = None if params==None else clf.best_params_
+	
+	f1_train = f1_score(train_truth, clf.predict(train_input), average = average)
+	f1_valid = f1_score(valid_truth, clf.predict(valid_input), average = average)
+	f1_test = f1_score(test_truth, clf.predict(test_input), average = average)
+
+	return f1_train, f1_valid, f1_test, best_param
+
+def random_class(set):
+	""""
+	Keyword arguments: 
+	set -- dataset (dictionary)
+
+	Returns: 
+	f1_score train, f1_score valid, f1_score test
+	"""
+	train_truth = set['train'][1]
+	valid_truth = set['valid'][1]
+	test_truth = set['test'][1]
+
+	classes = len(np.unique(train_truth))
+
+	# predict the output of each set randomly through all classes
+	f1_train = f1_score(train_truth, np.rint(np.random.random(len(train_truth)) * (classes - 1)), average = average)
+	f1_valid = f1_score(valid_truth, np.rint(np.random.random(len(valid_truth)) * (classes - 1)), average = average)
+	f1_test = f1_score(test_truth, np.rint(np.random.random(len(test_truth)) * (classes - 1)), average = average)
+	return f1_train, f1_valid, f1_test
+
+def majority_class(set):
+	""""
+	Keyword arguments: 
+	set -- dataset (dictionary)
+
+	Returns: 
+	f1_score train, f1_score valid, f1_score test
+	"""
+
+	train_truth = set['train'][1]
+	valid_truth = set['valid'][1]
+	test_truth = set['test'][1]
+
+	#find the class the majority class
+	maj = np.argmax(np.bincount(train_truth))
+
+	#predict the output of every sample to be = majority class
+	f1_train = f1_score(train_truth, np.array([maj for i in range(len(train_truth))]), average = average)
+	f1_valid = f1_score(valid_truth, np.array([maj for i in range(len(valid_truth))]), average = average)
+	f1_test = f1_score(test_truth, np.array([maj for i in range(len(test_truth))]), average = average)
+
+	return f1_train, f1_valid, f1_test
+
+
 if __name__:
 	n = 10000
+	ds_path = './hwk3_datasets/'
 	sets = ['yelp-', 'IMDB-']
+	average = 'micro'
+
 
 	#============== yelp ================
 	set = sets[0]
 	vocab_list = feature_extraction(set, n)
-	# yelp_bow, yelp_bowf = get_bow(vocab_list, set)
 
-	# print("\nUsing the BINARY Bag of Words")
-	# train_models(set, yelp_bow, False)
+	yelp_bow, yelp_bowf = get_bow(vocab_list, set)
 
-	# print("\nUsing the Frequency Bag of Words")
-	# train_models(set, yelp_bowf, True)
+	print("\nBINARY YELP\n")
 
 
+	pred = random_class(yelp_bow)
+	print(set, "Random Classifier \n(train, valid, test) = ", pred)
 
-	#============== IMDB ================
+	pred = majority_class(yelp_bow)
+	print(set, "Majority Classifier \n(train, valid, test) = ", pred)
+
+	param = [{'alpha': np.arange(0.6, 0.8, 0.01)}]
+	pred = train_model(yelp_bow, BernoulliNB(), param, 5)
+	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}\n".format(pred[3]))
+
+	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
+	pred = train_model(yelp_bow, DecisionTreeClassifier(), param, 5)
+	print(set, "Decision Tree \n(train, valid, test) = ", pred[:3])
+	print("best params = {}\n".format(pred[3]))
+
+	param = [{'max_iter': [500 * i for i in range(5)]}]
+	pred = train_model(yelp_bow, LinearSVC(), param, 5)
+	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}".format(pred[3]))
+
+
+	print("\nFREQUENCY YELP\n")
+
+	pred = random_class(yelp_bowf)
+	print(set, "Random Classifier \n(train, valid, test) = ", pred)
+
+	pred = majority_class(yelp_bowf)
+	print(set, "Majority Classifier \n(train, valid, test) = ", pred)
+
+	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
+	pred = train_model(yelp_bowf, DecisionTreeClassifier(), param, 5)
+	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}\n".format(pred[3]))
+
+	param = [{'max_iter': [500 * i for i in range(5)]}]
+	pred = train_model(yelp_bowf, LinearSVC(), param, 5)
+	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}".format(pred[3]))
+
+	yelp_bowf['train'][0] = yelp_bowf['train'][0].todense()
+	yelp_bowf['valid'][0] = yelp_bowf['valid'][0].todense()
+	yelp_bowf['test'][0] = yelp_bowf['test'][0].todense()
+
+	pred = train_model(yelp_bowf, GaussianNB(), None, 5)
+	print(set, "Naive Bayes\n(train, valid, test) = ", pred[:3])
+
+
+
+
+
+	# ============== IMDB ================
 	set = sets[1]
 	vocab_list = feature_extraction(set, n)
-	# IMDB_bow, IMDB_bowf = get_bow(vocab_list, set)
+	IMDB_bow, IMDB_bowf = get_bow(vocab_list, set)
 
-	# print("\nUsing the BINARY Bag of Words")
-	# train_models(set, IMDB_bow, False)
+	print("\nBINARY IMBDF\n")
 
-	# print("\nUsing the Frequency Bag of Words")
-	# train_models(set, IMDB_bowf, True)
+	pred = random_class(IMDB_bow)
+	print(set, "Random Classifier \n(train, valid, test) = ", pred)
+
+	pred = majority_class(IMDB_bow)
+	print(set, "Majority Classifier \n(train, valid, test) = ", pred)
+
+
+	param = [{'alpha': np.arange(0.6, 0.8, 0.01)}]
+	pred = train_model(IMDB_bow, BernoulliNB(), param, 5)
+	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}\n".format(pred[3]))
+
+	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
+	pred = train_model(IMDB_bow, DecisionTreeClassifier(), param, 5)
+	print(set, "Decision Tree \n(train, valid, test) = ", pred[:3])
+	print("best params = {}\n".format(pred[3]))
+
+	param = [{'max_iter': [500 * i for i in range(5)]}]
+	pred = train_model(IMDB_bow, LinearSVC(), param, 5)
+	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}".format(pred[3]))
+
+	print("\nFREQUENCY IMBDF\n")
+
+	pred = random_class(IMDB_bowf)
+	print(set, "Random Classifier \n(train, valid, test) = ", pred)
+
+	pred = majority_class(IMDB_bowf)
+	print(set, "Majority Classifier \n(train, valid, test) = ", pred)
+
+	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
+	pred = train_model(IMDB_bowf, DecisionTreeClassifier(), param, 5)
+	print(set, "Decision Tree \n(train, valid, test) = ", pred[:3])
+	print("best params = {}\n".format(pred[3]))
+
+	param = [{'max_iter': [500 * i for i in range(5)]}]
+	pred = train_model(IMDB_bowf, LinearSVC(), param, 5)
+	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}".format(pred[3]))
+
+	IMDB_bowf['train'][0] = IMDB_bowf['train'][0].todense()
+	IMDB_bowf['valid'][0] = IMDB_bowf['valid'][0].todense()
+	IMDB_bowf['test'][0] = IMDB_bowf['test'][0].todense()
+
+	pred = train_model(IMDB_bowf, GaussianNB(), None, 5)
+	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
+
 
 
