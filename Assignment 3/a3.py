@@ -35,7 +35,8 @@ def preprocess(file):
 	translator = str.maketrans(" ", " ", string.punctuation)
 	with open(file, 'r', encoding="utf-8") as f:
 		text = f.read()
-	text = text.lower().replace('\t', ' ').replace('<br /><br />', ' ').translate(translator)
+	text = text.lower().replace('\t', ' ').replace('<br /><br />', ' ').translate(translator).strip()
+	text = re.sub(' +', ' ', text)
 	return text
 
 def feature_extraction(name, n):
