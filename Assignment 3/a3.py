@@ -10,6 +10,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import normalize
 from sklearn.model_selection import GridSearchCV
+from sklearn.cross_validation import PredefinedSplit
 
 
 def warn(*args, **kwargs):
@@ -125,13 +126,12 @@ def get_bow(dict, set):
 
 	return bow, bow_f
 
-def train_model(set, clf, params, n_folds):
+def train_model(set, clf, params):
 	""""
 	Keyword arguments: 
 	set -- dataset (dictionary)
 	clf -- sklearn model 
 	params -- fine-tuning parameter 
-	n_folds -- number of cross validation folds
 
 	Returns: 
 	f1_score train, f1_score valid, f1_score test, best parameter 
@@ -154,9 +154,16 @@ def train_model(set, clf, params, n_folds):
 	valid_truth = valid[1]
 	test_truth = test[1]
 
+	combine_input = sparse.vstack([train_input, valid_input])
+	combine_truth = np.concatenate((train_truth, valid_truth))
+
+
 	if params != None:
-		clf = GridSearchCV(clf, params, cv=n_folds, refit=True)
-	clf.fit(train_input, train_truth)
+		fold = [-1 for i in range(train_input.shape[0])] + [0 for i in range(valid_input.shape[0])]
+		ps = PredefinedSplit(test_fold = fold)
+		clf = GridSearchCV(clf, params, cv=ps, refit=True)
+
+	clf.fit(combine_input, combine_truth)
 
 	best_param = None if params==None else clf.best_params_
 	
@@ -233,17 +240,17 @@ if __name__:
 	print(set, "Majority Classifier \n(train, valid, test) = ", pred)
 
 	param = [{'alpha': np.arange(0.6, 0.8, 0.01)}]
-	pred = train_model(yelp_bow, BernoulliNB(), param, 5)
+	pred = train_model(yelp_bow, BernoulliNB(), param)
 	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
 	print("best params = {}\n".format(pred[3]))
 
 	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
-	pred = train_model(yelp_bow, DecisionTreeClassifier(), param, 5)
+	pred = train_model(yelp_bow, DecisionTreeClassifier(), param)
 	print(set, "Decision Tree \n(train, valid, test) = ", pred[:3])
 	print("best params = {}\n".format(pred[3]))
 
 	param = [{'max_iter': [500 * i for i in range(5)]}]
-	pred = train_model(yelp_bow, LinearSVC(), param, 5)
+	pred = train_model(yelp_bow, LinearSVC(), param)
 	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
 	print("best params = {}".format(pred[3]))
 
@@ -257,12 +264,12 @@ if __name__:
 	print(set, "Majority Classifier \n(train, valid, test) = ", pred)
 
 	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
-	pred = train_model(yelp_bowf, DecisionTreeClassifier(), param, 5)
+	pred = train_model(yelp_bowf, DecisionTreeClassifier(), param)
 	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
 	print("best params = {}\n".format(pred[3]))
 
 	param = [{'max_iter': [500 * i for i in range(5)]}]
-	pred = train_model(yelp_bowf, LinearSVC(), param, 5)
+	pred = train_model(yelp_bowf, LinearSVC(), param)
 	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
 	print("best params = {}".format(pred[3]))
 
@@ -270,7 +277,7 @@ if __name__:
 	yelp_bowf['valid'][0] = yelp_bowf['valid'][0].todense()
 	yelp_bowf['test'][0] = yelp_bowf['test'][0].todense()
 
-	pred = train_model(yelp_bowf, GaussianNB(), None, 5)
+	pred = train_model(yelp_bowf, GaussianNB(), None)
 	print(set, "Naive Bayes\n(train, valid, test) = ", pred[:3])
 
 
@@ -292,17 +299,17 @@ if __name__:
 
 
 	param = [{'alpha': np.arange(0.6, 0.8, 0.01)}]
-	pred = train_model(IMDB_bow, BernoulliNB(), param, 5)
+	pred = train_model(IMDB_bow, BernoulliNB(), param)
 	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
 	print("best params = {}\n".format(pred[3]))
 
 	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
-	pred = train_model(IMDB_bow, DecisionTreeClassifier(), param, 5)
+	pred = train_model(IMDB_bow, DecisionTreeClassifier(), param)
 	print(set, "Decision Tree \n(train, valid, test) = ", pred[:3])
 	print("best params = {}\n".format(pred[3]))
 
 	param = [{'max_iter': [500 * i for i in range(5)]}]
-	pred = train_model(IMDB_bow, LinearSVC(), param, 5)
+	pred = train_model(IMDB_bow, LinearSVC(), param)
 	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
 	print("best params = {}".format(pred[3]))
 
@@ -315,12 +322,12 @@ if __name__:
 	print(set, "Majority Classifier \n(train, valid, test) = ", pred)
 
 	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
-	pred = train_model(IMDB_bowf, DecisionTreeClassifier(), param, 5)
+	pred = train_model(IMDB_bowf, DecisionTreeClassifier(), param)
 	print(set, "Decision Tree \n(train, valid, test) = ", pred[:3])
 	print("best params = {}\n".format(pred[3]))
 
 	param = [{'max_iter': [500 * i for i in range(5)]}]
-	pred = train_model(IMDB_bowf, LinearSVC(), param, 5)
+	pred = train_model(IMDB_bowf, LinearSVC(), param)
 	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
 	print("best params = {}".format(pred[3]))
 
@@ -328,7 +335,7 @@ if __name__:
 	IMDB_bowf['valid'][0] = IMDB_bowf['valid'][0].todense()
 	IMDB_bowf['test'][0] = IMDB_bowf['test'][0].todense()
 
-	pred = train_model(IMDB_bowf, GaussianNB(), None, 5)
+	pred = train_model(IMDB_bowf, GaussianNB(), None)
 	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
 
 
