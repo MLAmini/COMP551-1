@@ -155,6 +155,11 @@ def train_model(set, clf, params):
 	test_truth = test[1]
 
 	if params != None:
+		''' use predetermined validation set in the cross-validation  
+		1) Combine training and validation set into one big training set 
+		2) set test_fold vectors - 0 for validation entries, -1 for training entries
+		3) feed the split into GridSearchCV
+		'''
 		combine_input = sparse.vstack([train_input, valid_input])
 		combine_truth = np.concatenate((train_truth, valid_truth))
 		fold = [-1 for i in range(train_input.shape[0])] + [0 for i in range(valid_input.shape[0])]
@@ -229,48 +234,48 @@ if __name__:
 
 	yelp_bow, yelp_bowf = get_bow(vocab_list, set)
 
-	# print("\nBINARY YELP\n")
+	print("\nBINARY YELP\n")
 
 
-	# pred = random_class(yelp_bow)
-	# print(set, "Random Classifier \n(train, valid, test) = ", pred)
+	pred = random_class(yelp_bow)
+	print(set, "Random Classifier \n(train, valid, test) = ", pred)
 
-	# pred = majority_class(yelp_bow)
-	# print(set, "Majority Classifier \n(train, valid, test) = ", pred)
+	pred = majority_class(yelp_bow)
+	print(set, "Majority Classifier \n(train, valid, test) = ", pred)
 
-	# param = [{'alpha': np.arange(0.6, 0.8, 0.01)}]
-	# pred = train_model(yelp_bow, BernoulliNB(), param)
-	# print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
-	# print("best params = {}\n".format(pred[3]))
+	param = [{'alpha': np.arange(0.6, 0.8, 0.01)}]
+	pred = train_model(yelp_bow, BernoulliNB(), param)
+	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}\n".format(pred[3]))
 
-	# param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
-	# pred = train_model(yelp_bow, DecisionTreeClassifier(), param)
-	# print(set, "Decision Tree \n(train, valid, test) = ", pred[:3])
-	# print("best params = {}\n".format(pred[3]))
+	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
+	pred = train_model(yelp_bow, DecisionTreeClassifier(), param)
+	print(set, "Decision Tree \n(train, valid, test) = ", pred[:3])
+	print("best params = {}\n".format(pred[3]))
 
-	# param = [{'max_iter': [500 * i for i in range(5)]}]
-	# pred = train_model(yelp_bow, LinearSVC(), param)
-	# print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
-	# print("best params = {}".format(pred[3]))
+	param = [{'max_iter': [500 * i for i in range(5)]}]
+	pred = train_model(yelp_bow, LinearSVC(), param)
+	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}".format(pred[3]))
 
 
-	# print("\nFREQUENCY YELP\n")
+	print("\nFREQUENCY YELP\n")
 
-	# pred = random_class(yelp_bowf)
-	# print(set, "Random Classifier \n(train, valid, test) = ", pred)
+	pred = random_class(yelp_bowf)
+	print(set, "Random Classifier \n(train, valid, test) = ", pred)
 
-	# pred = majority_class(yelp_bowf)
-	# print(set, "Majority Classifier \n(train, valid, test) = ", pred)
+	pred = majority_class(yelp_bowf)
+	print(set, "Majority Classifier \n(train, valid, test) = ", pred)
 
-	# param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
-	# pred = train_model(yelp_bowf, DecisionTreeClassifier(), param)
-	# print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
-	# print("best params = {}\n".format(pred[3]))
+	param = [{'max_depth': [i for i in range(10, 20)], 'max_features': [1000 * i for i in range(2, 7)], 'max_leaf_nodes': [1000 * i for i in range(3, 6)]}]
+	pred = train_model(yelp_bowf, DecisionTreeClassifier(), param)
+	print(set, "Naive Bayes Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}\n".format(pred[3]))
 
-	# param = [{'max_iter': [500 * i for i in range(5)]}]
-	# pred = train_model(yelp_bowf, LinearSVC(), param)
-	# print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
-	# print("best params = {}".format(pred[3]))
+	param = [{'max_iter': [500 * i for i in range(5)]}]
+	pred = train_model(yelp_bowf, LinearSVC(), param)
+	print(set, "Linear SVM Classifier \n(train, valid, test) = ", pred[:3])
+	print("best params = {}".format(pred[3]))
 
 	yelp_bowf['train'][0] = yelp_bowf['train'][0].todense()
 	yelp_bowf['valid'][0] = yelp_bowf['valid'][0].todense()
